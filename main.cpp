@@ -2,23 +2,9 @@
 #include "Util/MatrixReader.h"
 #include "Util/MatrixRandom.h"
 #include "Algorithms/Genetic.h"
+#include "Algorithms/SimulatedAnnealing.h"
+#include "Algorithms/TabuSearch.h"
 
-
-using namespace std;
-
-// TODO
-// Wczytanie z pliku [+]
-// Czas stopu [+]
-
-// Algorytm SW [+]
-// Wspolczynnik zmiany temperatury [+]
-
-// Algorytm TS [+]
-// Wybor sasiedztwa [+]
-
-// Algorytm genetyczny [+]
-// Menu do GA [+]
-// Ustawianie parametrów [+]
 
 void mainMenu();
 void geneticMenu();
@@ -29,19 +15,22 @@ int main() {
 
 void geneticMenu(){
     int choice, timeLimit{10}, randomSize, min, max, populationSize{150}, mutationChoice;
-    double crossoverProbability{0.8}, mutationProbability{0.01};
-    string filename;
+    double crossoverProbability{0.8}, mutationProbability{0.01}, coolingRatio = 0.90;
+    std::string filename;
     MatrixReader mr;
     auto matrix = mr.read("tsp_48.txt");
     auto genetic = new Genetic;
+    auto simulatedAnnealing = new SimulatedAnnealing;
+    auto tabuSearch = new TabuSearch;
     auto result = genetic->solve(*matrix, populationSize, crossoverProbability, mutationProbability, 1);
     mutationType mutationType = SWAP;
 
     do{
-        cout << "[ Wybor grafu ]\n"
+        std::cout << "[ Wybor grafu ]\n"
                 "[1] Wczytaj z pliku\n"
                 "[2] Generuj losowo\n\n"
-                "[ Algorytm ]\n"
+
+                "[ Algorytm Genetyczny ]\n"
                 "[3] Wykonaj algorytm\n"
                 "[4] Zmnien prawdopodobienstwo mutacji\n"
                 "[5] Zmnien prawdopodobienstwo crossovera\n"
@@ -49,22 +38,31 @@ void geneticMenu(){
                 "[7] Zmnien typ mutacji\n"
                 "[8] Zmnien wielkosc populacji\n"
 
-                "[9] Zamknij program\n";
-        cin >> choice;
+                "[ Symulowane wyzarzanie ]\n"
+                "[9] Wykonaj algorytm\n"
+                "[10] Zmnien wspolczynnik chlodzenia\n"
+                "[11] Zmien limit czasu\n\n"
+
+                "[ Tabu Serach ]\n"
+                "[12] Wykonaj algorytm\n"
+                "[13] Zmnien typ ruchu\n"
+
+                "[14] Zamknij program\n";
+        std::cin >> choice;
 
         switch (choice) {
             case 1:
-                cout << "Podaj nazwe pliku: \n";
-                cin >> filename;
+                std::cout << "Podaj nazwe pliku: \n";
+                std::cin >> filename;
                     matrix = mr.read(filename);
-                cout << "Wczytano!\n\n";
+                std::cout << "Wczytano!\n\n";
                 break;
 
             case 2:
-                cout << "Podaj rozmiar, wartosc minimalna, wartosc maksymalna: \n";
-                cin >> randomSize >> min >> max;
+                std::cout << "Podaj rozmiar, wartosc minimalna, wartosc maksymalna: \n";
+                std::cin >> randomSize >> min >> max;
                     matrix = MatrixRandom::generate(randomSize, min, max);
-                cout << "Macierz wygenerowana!\n\n";
+                std::cout << "Macierz wygenerowana!\n\n";
                 break;
 
             case 3:
@@ -75,107 +73,62 @@ void geneticMenu(){
                 break;
 
             case 4:
-                cout << "Podaj prawdopodobienstwo:\n";
-                cin >> mutationProbability;
+                std::cout << "Podaj prawdopodobienstwo:\n";
+                std::cin >> mutationProbability;
                 break;
 
             case 5:
-                cout << "Podaj prawdopodobienstwo [s]:\n";
-                cin >> crossoverProbability;
+                std::cout << "Podaj prawdopodobienstwo [s]:\n";
+                std::cin >> crossoverProbability;
                 break;
 
             case 6:
-                cout << "Podaj limit czasu [s]:\n";
-                cin >> timeLimit;
+                std::cout << "Podaj limit czasu [s]:\n";
+                std::cin >> timeLimit;
                 break;
 
             case 7:
-                cout << "Wybierz typ mutacji: [1] SWAP, [2] REVERSE\n";
-                cin >> mutationChoice;
+                std::cout << "Wybierz typ mutacji: [1] SWAP, [2] REVERSE\n";
+                std::cin >> mutationChoice;
                 if(mutationChoice == 1) mutationType = SWAP;
                 if(mutationChoice == 2) mutationType = REVERSE;
                 break;
 
             case 8:
-                cout << "Podaj wielkosc populacji:\n";
-                cin >> populationSize;
+                std::cout << "Podaj wielkosc populacji:\n";
+                std::cin >> populationSize;
                 break;
 
-        }
-    }while(choice != 9);
-}
+            case 9:
+                simulatedAnnealing = new SimulatedAnnealing;
+                result = simulatedAnnealing->solve(*matrix, coolingRatio, timeLimit);
+                result->print();
+                break;
 
-//void mainMenu(){
-//    int choice, moveChoice, time = 10, randomSize, min, max;
-//    double  coolingRatio = 0.90;
-//    string filename;
-//    MatrixReader mr;
-//    auto matrix = mr.read("tsp_48.txt");
-//    auto simulatedAnnealing = new SimulatedAnnealing;
-//    auto tabuSearch = new TabuSearch;
-//    auto result = tabuSearch->solve(*matrix, 1);
-//    moveType moveType = SWAP;
-//
-//    do{
-//        cout << "[ Wybor grafu ]\n"
-//                "[1] Wczytaj z pliku\n"
-//                "[2] Generuj losowo\n\n"
-//                "[ Symulowane wyzarzanie ]\n"
-//                "[3] Wykonaj algorytm\n"
-//                "[4] Zmnien wspolczynnik chlodzenia\n"
-//                "[5] Zmien limit czasu\n\n"
-//                "[ Tabu Serach ]\n"
-//                "[6] Wykonaj algorytm\n"
-//                "[7] Zmnien typ ruchu\n"
-//                "[9] Zamknij program\n";
-//        cin >> choice;
-//
-//        switch (choice) {
-//            case 1:
-//                cout << "Podaj nazwe pliku: \n";
-//                cin >> filename;
-//                    matrix = mr.read(filename);
-//                cout << "Wczytano!\n\n";
-//                break;
-//
-//            case 2:
-//                cout << "Podaj rozmiar, wartosc minimalna, wartosc maksymalna: \n";
-//                cin >> randomSize >> min >> max;
-//                    matrix = MatrixRandom::generate(randomSize, min, max);
-//                cout << "Macierz wygenerowana!\n\n";
-//                break;
-//
-//            case 3:
-//                simulatedAnnealing = new SimulatedAnnealing;
-//                result = simulatedAnnealing->solve(*matrix, coolingRatio, time);
-//                result->print();
-//                break;
-//
-//            case 4:
-//                cout << "Podaj wspolczynnik:\n";
-//                cin >> coolingRatio;
-//                break;
-//
-//            case 5:
-//                cout << "Podaj limit czasu [s]:\n";
-//                cin >> time;
-//                break;
-//
-//            case 6:
-//                tabuSearch = new TabuSearch;
-//                result = tabuSearch->solve(*matrix, time);
-//                tabuSearch->setMoveType(moveType);
-//                result->print();
-//                break;
-//
-//            case 7:
-//                cout << "Wybierz typ ruchu: [1] SWAP, [2] INSERT, [3] INVERT\n";
-//                cin >> moveChoice;
-//                if(moveChoice == 1) moveType = SWAP;
-//                if(moveChoice == 1) moveType = INSERT;
-//                if(moveChoice == 1) moveType = INVERT;
-//                break;
-//
-//        }
-//    }while(choice != 9);
-//}
+            case 10:
+                std::cout << "Podaj wspolczynnik:\n";
+                std::cin >> coolingRatio;
+                break;
+
+            case 11:
+                std::cout << "Podaj limit czasu [s]:\n";
+                std::cin >> timeLimit;
+                break;
+
+            case 12:
+                tabuSearch = new TabuSearch;
+                result = tabuSearch->solve(*matrix, timeLimit);
+                tabuSearch->setMoveType(moveType);
+                result->print();
+                break;
+
+            case 13:
+                std::cout << "Wybierz typ ruchu: [1] SWAP, [2] INSERT, [3] INVERT\n";
+                std::cin >> moveChoice;
+                if(moveChoice == 1) moveType = SWAP;
+                if(moveChoice == 2) moveType = INSERT;
+                if(moveChoice == 3) moveType = INVERT;
+                break;
+        }
+    }while(choice != 14);
+}
